@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Advanced Cyber Threat Scanning Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
+        th { background-color: #f4f4f4; }
+        #results { margin-top: 20px; }
+        #chartContainer { width: 600px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <h1>Advanced Cyber Threat Scanning Dashboard</h1>
+    <form id="scanForm">
+        <label for="target">Target IP/Domain:</label>
+        <input type="text" id="target" name="target" required />
+        <button type="submit">Run Scan</button>
+    </form>
+
+    <div id="results"></div>
+
+    <div id="chartContainer">
+        <canvas id="portChart"></canvas>
+    </div>
+
+    <button id="generateReport" style="display:none;">Generate PDF Report</button>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

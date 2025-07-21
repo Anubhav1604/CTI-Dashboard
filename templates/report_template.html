@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>CTI Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #4361ee; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+        th { background: #f0f0f0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Cyber Threat Intelligence Report</h1>
+    <p>Generated on {{ datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') }} UTC</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>IP</th>
+                <th>Lookup Time</th>
+                <th>VirusTotal</th>
+                <th>AbuseIPDB</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lookup in lookups %}
+            <tr>
+                <td>{{ lookup.get('ip', 'N/A') }}</td>
+                <td>{{ lookup.get('timestamp').strftime('%Y-%m-%d %H:%M:%S') if lookup.get('timestamp') else 'N/A' }}</td>
+                <td><pre>{{ lookup.get('virustotal') | tojson(indent=2) }}</pre></td>
+                <td><pre>{{ lookup.get('abuseipdb') | tojson(indent=2) }}</pre></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

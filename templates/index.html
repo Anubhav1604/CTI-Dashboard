@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Threat Intelligence Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --danger: #f72585;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            color: var(--dark);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #3a56d4;
+        }
+        #result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+.dark-mode .card {
+  background-color: #1e1e1e;
+  box-shadow: none;
+}
+.dark-mode input, .dark-mode button {
+  background-color: #333;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
+    </style>
+</head>
+<body>
+    <header>
+	
+
+        <div class="container">
+<button id="dark-mode-toggle" style="float:right; margin-top:10px; padding:6px 12px; cursor:pointer;">
+  🌙 Dark Mode
+</button>
+            <h1><i class="fas fa-shield-alt"></i> Cyber Threat Intelligence Dashboard</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="grid">
+            <!-- IP Lookup Card -->
+            <div class="card">
+                <h2><i class="fas fa-search"></i> IP Lookup</h2>
+                <form id="lookupForm">
+                    <div class="form-group">
+                        <label for="ipInput">IP Address / Domain</label>
+                        <input type="text" id="ipInput" placeholder="e.g., 8.8.8.8 or google.com" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-search"></i> Lookup</button>
+                </form>
+                <div id="result" style="margin-top: 15px;"></div>
+            </div>
+
+            <!-- Tagging Card -->
+            <div class="card">
+                <h2><i class="fas fa-tag"></i> Tag an IP</h2>
+                <form id="tagForm">
+                    <div class="form-group">
+                        <label for="tagIpInput">IP Address</label>
+                        <input type="text" id="tagIpInput" placeholder="e.g., 8.8.8.8" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tagInput">Tag (e.g., Malicious, Phishing)</label>
+                        <input type="text" id="tagInput" placeholder="Enter tag" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-plus"></i> Add Tag</button>
+                </form>
+                <div id="tagMessage" style="margin-top: 10px; color: var(--primary);"></div>
+            </div>
+        </div>
+
+        <!-- Trends Card -->
+        <div class="card">
+            <h2><i class="fas fa-chart-line"></i> Threat Trends</h2>
+            <canvas id="trendChart" height="300"></canvas>
+        </div>
+
+        <!-- Export Card -->
+        <div class="card">
+            <h2><i class="fas fa-file-export"></i> Export Data</h2>
+            <a href="/api/export" download="cti_export.csv" class="btn">
+                <button><i class="fas fa-download"></i> Download CSV</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // IP Lookup
+        document.getElementById('lookupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ip = document.getElementById('ipInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            
+            try {
+                const response = await axios.post('/api/lookup', { ip });
+                resultDiv.innerHTML = `<pre>${JSON.stringify(response.data, null, 2)}</pre>`;
+                loadTrends(); // Refresh chart
+            } catch (error) {
+                resultDiv.innerHTML = `<span style="color: var(--danger);">Error: ${error.response?.data?.error || 'Failed to fetch data'}</span>`;
+            }
+        });
+
+        // Tagging
+        document.getElementById('tagForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ip = document.getElementById('tagIpInput').value;
+            const tag = document.getElementById('tagInput').value;
+            const tagMessage = document.getElementById('tagMessage');
+            
+            tagMessage.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding tag...';
+            
+            try {
+                const response = await axios.post('/api/tag', { ip, tag });
+                tagMessage.innerHTML = `<span style="color: var(--success);"><i class="fas fa-check"></i> ${response.data.message}</span>`;
+            } catch (error) {
+                tagMessage.innerHTML = `<span style="color: var(--danger);"><i class="fas fa-times"></i> ${error.response?.data?.error || 'Failed to add tag'}</span>`;
+            }
+        });
+
+        // Load Trends Chart
+        let trendChart;
+        async function loadTrends() {
+            const response = await axios.get('/api/trends');
+            const data = response.data;
+
+            const labels = data.map(item => item._id);
+            const counts = data.map(item => item.count);
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Threat Lookups per Day',
+                        data: counts,
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: { mode: 'index' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        loadTrends();
+    </script>
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('alert', (data) => {
+    alert(`Real-time Alert!\nIP: ${data.ip}\nThreat: ${data.threat}\nTime: ${data.timestamp}`);
+    // You can also append alerts to a div instead of alert()
+  });
+
+  // Dark mode toggle
+  document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+</script>
+
+</body>
+</html>
