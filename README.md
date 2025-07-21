@@ -1,2 +1,20 @@
 # CTI-Dashboard
 This is Cyber Threat Intelligence Dashboard 
+
+A Flask-based dashboard for running Nmap scans, visualizing threats, and generating PDF reports.
+
+## Features
+- Run Nmap scans via web interface  
+- Real-time results with charts  
+- PDF report generation  
+
+## Quick Start
+1. Install Python 3.10+ and Nmap.
+2. Clone and run:
+   ```bash
+   git clone https://github.com/yourusername/cyber-threat-dashboard.git
+   cd cyber-threat-dashboard
+   pip install -r requirements.txt
+   python app.py
+
+3. Access http://127.0.0.1:5000.
