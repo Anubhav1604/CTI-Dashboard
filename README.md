@@ -25,4 +25,4 @@ A Flask-based dashboard for running Nmap scans, visualizing threats, and generat
 2. Configure MongoDB URI in `app.py`:
    ```python
    app.config["MONGO_URI"] = "mongodb://localhost:27017/scan_db"
-3. Packages u have to install more is : eventlet ,greenlet , pip, dns .
+3. Packages u have to install more are : eventlet ,greenlet , pip, dns .
